@@ -11,11 +11,13 @@ function App() {
   const [account, setAccount] = useState("");
   const [contract, setContract] = useState(null);
   const [isUniversity, setIsUniversity] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadBlockchain = async () => {
       if (window.ethereum) {
         try {
+          setIsLoading(true);
           const provider = new ethers.BrowserProvider(window.ethereum);
           const signer = await provider.getSigner();
           const userAddress = await signer.getAddress();
@@ -28,7 +30,6 @@ function App() {
           );
           setContract(contractInstance);
 
-          // Check if user is university
           const uniAddress = await contractInstance.university();
           setIsUniversity(userAddress.toLowerCase() === uniAddress.toLowerCase());
           
@@ -40,19 +41,21 @@ function App() {
         } catch (error) {
           console.error("Initialization error:", error);
           alert(`Connection error: ${error.message}`);
+        } finally {
+          setIsLoading(false);
         }
       } else {
         alert("Please install MetaMask!");
+        setIsLoading(false);
       }
     };
 
     loadBlockchain();
 
-    // Handle account changes
     const handleAccountsChanged = (accounts) => {
       if (accounts.length > 0) {
         setAccount(accounts[0]);
-        loadBlockchain(); // Reload everything with new account
+        loadBlockchain();
       } else {
         setAccount("");
         setContract(null);
@@ -63,16 +66,46 @@ function App() {
     return () => window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
   }, []);
 
-  return (
-    <div className="App">
-      <h1>Certificate System</h1>
-      <p><strong>Connected Wallet:</strong> {account}</p>
-      {isUniversity && <p className="badge">University Account</p>}
+  const connectWallet = async () => {
+    try {
+      setIsLoading(true);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setAccount(address);
+    } catch (error) {
+      console.error("Wallet connection error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      {isUniversity ? (
-        <UniversityView contract={contract} />
+  return (
+    <div className="certificate-app">
+      <h1 className="header">🎓 Certificate System</h1>
+
+      {isLoading ? (
+        <div className="loading-state">Loading blockchain data...</div>
+      ) : !account ? (
+        <button className="connect-button" onClick={connectWallet}>
+          Connect Wallet
+        </button>
       ) : (
-        <StudentView contract={contract} account={account} />
+        <div className="app-content">
+          <div className="account-info">
+            <p className="connected-status">
+              Connected as: <span className="account-address">{account}</span>
+              {isUniversity && <span className="university-badge">University Account</span>}
+            </p>
+          </div>
+
+          {isUniversity ? (
+            <UniversityView contract={contract} />
+          ) : (
+            <StudentView contract={contract} account={account} />
+          )}
+        </div>
       )}
     </div>
   );
@@ -107,24 +140,33 @@ function UniversityView({ contract }) {
   };
 
   return (
-    <div className="card">
+    <div className="university-card">
       <h2>Issue New Certificate</h2>
-      <input 
-        placeholder="Student Address" 
-        value={studentAddress}
-        onChange={(e) => setStudentAddress(e.target.value)}
-      />
-      <input
-        placeholder="Student Name"
-        value={studentName}
-        onChange={(e) => setStudentName(e.target.value)}
-      />
-      <input
-        placeholder="IPFS Hash"
-        value={ipfsHash}
-        onChange={(e) => setIpfsHash(e.target.value)}
-      />
-      <button 
+      <div className="form-group">
+        <input
+          className="input-field"
+          type="text"
+          placeholder="Student Wallet Address"
+          value={studentAddress}
+          onChange={(e) => setStudentAddress(e.target.value)}
+        />
+        <input
+          className="input-field"
+          type="text"
+          placeholder="Student Name"
+          value={studentName}
+          onChange={(e) => setStudentName(e.target.value)}
+        />
+        <input
+          className="input-field"
+          type="text"
+          placeholder="IPFS Hash"
+          value={ipfsHash}
+          onChange={(e) => setIpfsHash(e.target.value)}
+        />
+      </div>
+      <button
+        className={`action-button ${isLoading ? 'loading' : ''}`}
         onClick={issueCertificate}
         disabled={isLoading}
       >
@@ -156,27 +198,40 @@ function StudentView({ contract, account }) {
       setCertificates(fetchedCerts);
     } catch (err) {
       console.error("Fetch error:", err);
-      alert(`Error: ${err.reason || err.message}`);
+      alert(`❌ Error: ${err.reason || err.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h2>My Certificates</h2>
-      <button onClick={fetchCertificates} disabled={isLoading}>
-        {isLoading ? "Loading..." : "Refresh Certificates"}
-      </button>
+    <div className="student-card">
+      <div className="certificate-actions">
+        <button
+          className={`action-button ${isLoading ? 'loading' : ''}`}
+          onClick={fetchCertificates}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "Refresh Certificates"}
+        </button>
+      </div>
 
       <div className="certificates-list">
-        {certificates.map((cert, i) => (
-          <div key={i} className="certificate">
-            <p><strong>Name:</strong> {cert.studentName}</p>
-            <p><strong>IPFS:</strong> {cert.ipfsHash}</p>
-            <p><strong>Status:</strong> {cert.isValid ? "Valid" : "Revoked"}</p>
-          </div>
-        ))}
+        {certificates.length > 0 ? (
+          certificates.map((cert, i) => (
+            <div key={i} className="certificate-item">
+              <h3>{cert.studentName}</h3>
+              <p className="ipfs-hash">
+                <strong>IPFS:</strong> {cert.ipfsHash}
+              </p>
+              <p className={`status ${cert.isValid ? 'valid' : 'revoked'}`}>
+                {cert.isValid ? "Valid" : "Revoked"}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="no-certificates">No certificates found</p>
+        )}
       </div>
     </div>
   );

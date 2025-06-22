@@ -1,42 +1,130 @@
+:root {
+  --primary-color: #4361ee;  /* Vibrant blue */
+  --secondary-color: #3a0ca3; /* Deep purple */
+  --accent-color: #4cc9f0;   /* Light blue */
+  --background-dark: #0f172a; /* Dark blue-gray */
+  --background-light: #f8f9fa; /* Off-white */
+  --text-light: #f8f9fa;
+  --text-dark: #212529;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: var(--background-dark);
+  color: var(--text-light);
+  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Certificate System Specific Styles */
+.certificate-app {
+  background-color: var(--background-dark);
+  color: var(--text-light);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.header {
+  color: var(--accent-color);
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.connect-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
+.connect-button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.input-field {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 1rem;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+  font-size: 1rem;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+}
+
+.issue-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.issue-button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+.connected-status {
+  color: var(--accent-color);
+  margin-bottom: 1.5rem;
+}
+
+.university-badge {
+  display: inline-block;
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-left: 10px;
+}
+
+/* Card styles */
 .card {
-  padding: 2em;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.read-the-docs {
-  color: #888;
+/* Animation for loading states */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.loading {
+  animation: pulse 1.5s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+  
+  .header {
+    font-size: 2rem;
+  }
 }
